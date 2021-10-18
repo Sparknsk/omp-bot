@@ -41,6 +41,14 @@ func (c *WaterCommander) Edit(inputMessage *tgbotapi.Message) {
 		return
 	}
 
+	if entityData.Name == "" {
+		c.sendMessage(
+			inputMessage.Chat.ID,
+			fmt.Sprintf("Ошибка: необходимо заполнить поле name"),
+		)
+		return
+	}
+
 	entity := autotransport.NewWater(
 		id,
 		entityData.Name,
