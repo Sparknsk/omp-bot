@@ -12,7 +12,7 @@ import (
 func (c *WaterCommander) Edit(inputMessage *tgbotapi.Message) {
 	args := inputMessage.CommandArguments()
 
-	re, _ := regexp.Compile(`^(\d)+\s(.+)$`)
+	re, _ := regexp.Compile(`^(?:\s+)?(\d+)\s+(.+)$`)
 	if !re.MatchString(args) {
 		c.sendMessage(
 			inputMessage.Chat.ID,
