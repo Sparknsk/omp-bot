@@ -33,9 +33,9 @@ func main() {
 		log.Panic(err)
 	}
 
-	router := router.NewRouter(bot)
+	newRouter := router.NewRouter(bot)
 
 	for update := range updates {
-		router.HandleUpdate(update)
+		newRouter.HandleUpdate(update)
 	}
 }
