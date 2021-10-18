@@ -5,6 +5,16 @@ import (
 	"github.com/ozonmp/omp-bot/internal/model/autotransport"
 )
 
+//TODO: возможно не лучшее место для хранения
+var allEntities = []autotransport.Water{
+	{Id: 1, Name: "One", Model: "X1", Manufacturer: "BMW", Material: "Iron", Speed: 10},
+	{Id: 2, Name: "Two", Model: "X2", Manufacturer: "Toyota", Material: "Iron", Speed: 20},
+	{Id: 3, Name: "Three", Model: "X3", Manufacturer: "Tesla", Material: "Wood", Speed: 30},
+	{Id: 4, Name: "Four", Model: "X4", Manufacturer: "Ford", Material: "Wood", Speed: 40},
+	{Id: 5, Name: "Five", Model: "X5", Manufacturer: "Kia", Material: "Plastic", Speed: 50},
+}
+var waterIdMax uint64
+
 type DummyWaterService struct {}
 
 func NewDummyWaterService() *DummyWaterService {
@@ -12,7 +22,7 @@ func NewDummyWaterService() *DummyWaterService {
 }
 
 func (s *DummyWaterService) Describe(waterId uint64) (*autotransport.Water, error) {
-	for _, item := range autotransport.AllEntities {
+	for _, item := range allEntities {
 		if item.Id == waterId {
 			return &item, nil
 		}
@@ -26,45 +36,39 @@ func (s *DummyWaterService) List(cursor uint64, limit uint64) []autotransport.Wa
 
 	offset := (cursor-1)*limit
 	last := cursor*limit
-	count := s.Count()
 
-	var entitiesSlice []autotransport.Water
-	if last > uint64(count) {
-		entitiesSlice = autotransport.AllEntities[offset:]
+	if last > uint64(s.Count()) {
+		entities = allEntities[offset:]
 	} else {
-		entitiesSlice = autotransport.AllEntities[offset:last]
-	}
-
-	for _, item := range entitiesSlice {
-		entities = append(entities, item)
+		entities = allEntities[offset:last]
 	}
 
 	return entities
 }
 
 func (s *DummyWaterService) Count() int {
-	return len(autotransport.AllEntities)
+	return len(allEntities)
 }
 
 func (s *DummyWaterService) Create(water autotransport.Water) (uint64, error) {
-	maxId := uint64(0)
-	for _, item := range autotransport.AllEntities {
-		if item.Id > maxId {
-			maxId = item.Id
+	for _, item := range allEntities {
+		if item.Id > waterIdMax {
+			waterIdMax = item.Id
 		}
 	}
+	waterIdMax = waterIdMax+1
 
-	water.Id = maxId+1
+	water.Id = waterIdMax
 
-	autotransport.AllEntities = append(autotransport.AllEntities, water)
+	allEntities = append(allEntities, water)
 
 	return water.Id, nil
 }
 
 func (s *DummyWaterService) Update(waterId uint64, water autotransport.Water) error {
-	for key, item := range autotransport.AllEntities {
+	for key, item := range allEntities {
 		if item.Id == waterId {
-			autotransport.AllEntities[key] = water
+			allEntities[key] = water
 			return nil
 		}
 	}
@@ -73,9 +77,9 @@ func (s *DummyWaterService) Update(waterId uint64, water autotransport.Water) er
 }
 
 func (s *DummyWaterService) Remove(waterId uint64) (bool, error) {
-	for key, item := range autotransport.AllEntities {
+	for key, item := range allEntities {
 		if item.Id == waterId {
-			autotransport.AllEntities = append(autotransport.AllEntities[:key], autotransport.AllEntities[key+1:]...)
+			allEntities = append(allEntities[:key], allEntities[key+1:]...)
 			return true, nil
 		}
 	}
