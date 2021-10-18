@@ -6,6 +6,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/ozonmp/omp-bot/internal/app/commands/autotransport/water"
 	"github.com/ozonmp/omp-bot/internal/app/path"
+	service "github.com/ozonmp/omp-bot/internal/service/autotransport/water"
 )
 
 type Commander interface {
@@ -18,12 +19,12 @@ type AutotransportCommander struct {
 	waterCommander Commander
 }
 
-func NewAutotransportCommander(
-	bot *tgbotapi.BotAPI,
-) *AutotransportCommander {
+func NewAutotransportCommander(bot *tgbotapi.BotAPI) *AutotransportCommander {
+	waterService := service.NewDummyWaterService()
+
 	return &AutotransportCommander{
 		bot: bot,
-		waterCommander: water.NewWaterCommander(bot),
+		waterCommander: water.NewWaterCommander(bot, waterService),
 	}
 }
 

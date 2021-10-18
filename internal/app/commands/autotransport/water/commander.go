@@ -2,7 +2,6 @@ package water
 
 import (
 	"github.com/ozonmp/omp-bot/internal/model/autotransport"
-	"github.com/ozonmp/omp-bot/internal/service/autotransport/water"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -10,6 +9,11 @@ import (
 )
 
 const limitPerPage = 2
+
+type Commander interface {
+	HandleCallback(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath)
+	HandleCommand(message *tgbotapi.Message, commandPath path.CommandPath)
+}
 
 type WaterService interface {
 	Describe(waterId uint64) (*autotransport.Water, error)
@@ -33,11 +37,7 @@ type WaterCommander struct {
 	service WaterService
 }
 
-func NewWaterCommander(
-	bot *tgbotapi.BotAPI,
-) *WaterCommander {
-	service := water.NewDummyWaterService()
-
+func NewWaterCommander(bot *tgbotapi.BotAPI, service WaterService) *WaterCommander {
 	return &WaterCommander{
 		bot: bot,
 		service: service,
