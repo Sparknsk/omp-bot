@@ -3,8 +3,6 @@ package water
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/ozonmp/omp-bot/internal/app/path"
 )
@@ -16,13 +14,10 @@ type CallbackListData struct {
 func (c *WaterCommander) CallbackList(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
 	parsedData := CallbackListData{}
 	if err := json.Unmarshal([]byte(callbackPath.CallbackData), &parsedData); err != nil {
-		msg := tgbotapi.NewMessage(
+		c.sendMessage(
 			callback.Message.Chat.ID,
 			fmt.Sprintf("Ошибка: номер страницы указан неверно"),
 		)
-		if _, err := c.bot.Send(msg); err != nil {
-			log.Printf("Ошибка Телеграм: %v", err)
-		}
 		return
 	}
 
@@ -34,23 +29,15 @@ func (c *WaterCommander) CallbackList(callback *tgbotapi.CallbackQuery, callback
 		outputMsgText += fmt.Sprintf("Сущность: %v", entity)+"\n\n"
 	}
 
-	msg := tgbotapi.NewMessage(
-		callback.Message.Chat.ID,
-		outputMsgText,
-	)
-
 	var inlineKeyboardButtons []tgbotapi.InlineKeyboardButton
 
 	if pageNumber > 1 {
 		callbackDataPrev, errPrev := json.Marshal(CallbackListData{PageNumber: int(pageNumber-1)})
 		if errPrev != nil {
-			msg = tgbotapi.NewMessage(
+			c.sendMessage(
 				callback.Message.Chat.ID,
 				fmt.Sprintf("Ошибка: не удалось получить список"),
 			)
-			if _, err := c.bot.Send(msg); err != nil {
-				log.Printf("Ошибка: %v", err)
-			}
 			return
 		}
 		inlineKeyboardButtons = append(inlineKeyboardButtons, tgbotapi.NewInlineKeyboardButtonData("Prev", "autotransport__water__list__"+string(callbackDataPrev)))
@@ -59,24 +46,18 @@ func (c *WaterCommander) CallbackList(callback *tgbotapi.CallbackQuery, callback
 	if pageNumber*limitPerPage < uint64(c.service.Count()) {
 		callbackDataNext, errNext := json.Marshal(CallbackListData{PageNumber: int(pageNumber+1)})
 		if errNext != nil {
-			msg = tgbotapi.NewMessage(
+			c.sendMessage(
 				callback.Message.Chat.ID,
 				fmt.Sprintf("Ошибка: не удалось получить список"),
 			)
-			if _, err := c.bot.Send(msg); err != nil {
-				log.Printf("Ошибка: %v", err)
-			}
 			return
 		}
 		inlineKeyboardButtons = append(inlineKeyboardButtons, tgbotapi.NewInlineKeyboardButtonData("Next", "autotransport__water__list__"+string(callbackDataNext)))
 	}
 
-	var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+	c.sendMessageWithButtons(
+		callback.Message.Chat.ID,
+		outputMsgText,
 		inlineKeyboardButtons,
 	)
-	msg.ReplyMarkup = numericKeyboard
-
-	if _, err := c.bot.Send(msg); err != nil {
-		log.Printf("Ошибка Телеграм: %v", err)
-	}
 }

@@ -71,3 +71,22 @@ func (c *WaterCommander) HandleCommand(msg *tgbotapi.Message, commandPath path.C
 		c.Default(msg)
 	}
 }
+
+func (c *WaterCommander) sendMessage(id int64, msg string) {
+	newMsg := tgbotapi.NewMessage(id, msg)
+	if _, err := c.bot.Send(newMsg); err != nil {
+		log.Printf("Ошибка Телеграм: %v", err)
+	}
+}
+
+func (c *WaterCommander) sendMessageWithButtons(id int64, msg string, buttons []tgbotapi.InlineKeyboardButton) {
+	newMsg := tgbotapi.NewMessage(id, msg)
+
+	if len(buttons) > 0 {
+		newMsg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(buttons)
+	}
+
+	if _, err := c.bot.Send(newMsg); err != nil {
+		log.Printf("Ошибка Телеграм: %v", err)
+	}
+}
