@@ -51,12 +51,7 @@ func (s *DummyWaterService) Count() int {
 }
 
 func (s *DummyWaterService) Create(water autotransport.Water) (uint64, error) {
-	for _, item := range allEntities {
-		if item.Id > waterIdMax {
-			waterIdMax = item.Id
-		}
-	}
-	waterIdMax = waterIdMax+1
+	waterIdMax += 1
 
 	water.Id = waterIdMax
 
@@ -85,4 +80,8 @@ func (s *DummyWaterService) Remove(waterId uint64) (bool, error) {
 	}
 
 	return false, fmt.Errorf("сущность с ID=%d не найдена", waterId)
+}
+
+func init()  {
+	waterIdMax = uint64(len(allEntities))
 }
