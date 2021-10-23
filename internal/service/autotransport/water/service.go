@@ -3,6 +3,7 @@ package water
 import (
 	"fmt"
 	"github.com/ozonmp/omp-bot/internal/model/autotransport"
+	"sync/atomic"
 )
 
 type DummyWaterService struct {
@@ -57,9 +58,9 @@ func (s *DummyWaterService) Count() int {
 }
 
 func (s *DummyWaterService) Create(water autotransport.Water) (uint64, error) {
-	s.entityIdMax += 1
+	atomic.AddUint64(&s.entityIdMax, 1)
 
-	water.Id = s.entityIdMax
+	water.Id = atomic.LoadUint64(&s.entityIdMax)
 
 	s.allEntities = append(s.allEntities, water)
 
