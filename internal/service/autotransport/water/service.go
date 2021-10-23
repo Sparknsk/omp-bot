@@ -5,24 +5,30 @@ import (
 	"github.com/ozonmp/omp-bot/internal/model/autotransport"
 )
 
-//TODO: возможно не лучшее место для хранения
-var allEntities = []autotransport.Water{
-	{Id: 1, Name: "One", Model: "X1", Manufacturer: "BMW", Material: "Iron", Speed: 10},
-	{Id: 2, Name: "Two", Model: "X2", Manufacturer: "Toyota", Material: "Iron", Speed: 20},
-	{Id: 3, Name: "Three", Model: "X3", Manufacturer: "Tesla", Material: "Wood", Speed: 30},
-	{Id: 4, Name: "Four", Model: "X4", Manufacturer: "Ford", Material: "Wood", Speed: 40},
-	{Id: 5, Name: "Five", Model: "X5", Manufacturer: "Kia", Material: "Plastic", Speed: 50},
+type DummyWaterService struct {
+	allEntities []autotransport.Water
+	entityIdMax uint64
 }
-var waterIdMax uint64
-
-type DummyWaterService struct {}
 
 func NewDummyWaterService() *DummyWaterService {
-	return &DummyWaterService{}
+	entities := []autotransport.Water{
+		{Id: 1, Name: "One", Model: "X1", Manufacturer: "BMW", Material: "Iron", Speed: 10},
+		{Id: 2, Name: "Two", Model: "X2", Manufacturer: "Toyota", Material: "Iron", Speed: 20},
+		{Id: 3, Name: "Three", Model: "X3", Manufacturer: "Tesla", Material: "Wood", Speed: 30},
+		{Id: 4, Name: "Four", Model: "X4", Manufacturer: "Ford", Material: "Wood", Speed: 40},
+		{Id: 5, Name: "Five", Model: "X5", Manufacturer: "Kia", Material: "Plastic", Speed: 50},
+	}
+
+	s := &DummyWaterService{
+		allEntities: entities,
+		entityIdMax: uint64(len(entities)),
+	}
+
+	return s
 }
 
 func (s *DummyWaterService) Describe(waterId uint64) (*autotransport.Water, error) {
-	for _, item := range allEntities {
+	for _, item := range s.allEntities {
 		if item.Id == waterId {
 			return &item, nil
 		}
@@ -38,32 +44,32 @@ func (s *DummyWaterService) List(cursor uint64, limit uint64) []autotransport.Wa
 	last := cursor*limit
 
 	if last > uint64(s.Count()) {
-		entities = allEntities[offset:]
+		entities = s.allEntities[offset:]
 	} else {
-		entities = allEntities[offset:last]
+		entities = s.allEntities[offset:last]
 	}
 
 	return entities
 }
 
 func (s *DummyWaterService) Count() int {
-	return len(allEntities)
+	return len(s.allEntities)
 }
 
 func (s *DummyWaterService) Create(water autotransport.Water) (uint64, error) {
-	waterIdMax += 1
+	s.entityIdMax += 1
 
-	water.Id = waterIdMax
+	water.Id = s.entityIdMax
 
-	allEntities = append(allEntities, water)
+	s.allEntities = append(s.allEntities, water)
 
 	return water.Id, nil
 }
 
 func (s *DummyWaterService) Update(waterId uint64, water autotransport.Water) error {
-	for key, item := range allEntities {
+	for key, item := range s.allEntities {
 		if item.Id == waterId {
-			allEntities[key] = water
+			s.allEntities[key] = water
 			return nil
 		}
 	}
@@ -72,16 +78,12 @@ func (s *DummyWaterService) Update(waterId uint64, water autotransport.Water) er
 }
 
 func (s *DummyWaterService) Remove(waterId uint64) (bool, error) {
-	for key, item := range allEntities {
+	for key, item := range s.allEntities {
 		if item.Id == waterId {
-			allEntities = append(allEntities[:key], allEntities[key+1:]...)
+			s.allEntities = append(s.allEntities[:key], s.allEntities[key+1:]...)
 			return true, nil
 		}
 	}
 
 	return false, fmt.Errorf("сущность с ID=%d не найдена", waterId)
-}
-
-func init()  {
-	waterIdMax = uint64(len(allEntities))
 }
