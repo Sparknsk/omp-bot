@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/ozonmp/omp-bot/internal/app/commands/autotransport"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -19,6 +20,7 @@ type Router struct {
 
 	// demoCommander
 	demoCommander Commander
+	autotransportCommander Commander
 	// user
 	// access
 	// buy
@@ -54,6 +56,7 @@ func NewRouter(
 		bot: bot,
 		// demoCommander
 		demoCommander: demo.NewDemoCommander(bot),
+		autotransportCommander: autotransport.NewAutotransportCommander(bot),
 		// user
 		// access
 		// buy
@@ -107,6 +110,8 @@ func (c *Router) handleCallback(callback *tgbotapi.CallbackQuery) {
 	switch callbackPath.Domain {
 	case "demo":
 		c.demoCommander.HandleCallback(callback, callbackPath)
+	case "autotransport":
+		c.autotransportCommander.HandleCallback(callback, callbackPath)
 	case "user":
 		break
 	case "access":
@@ -178,6 +183,8 @@ func (c *Router) handleMessage(msg *tgbotapi.Message) {
 	switch commandPath.Domain {
 	case "demo":
 		c.demoCommander.HandleCommand(msg, commandPath)
+	case "autotransport":
+		c.autotransportCommander.HandleCommand(msg, commandPath)
 	case "user":
 		break
 	case "access":
